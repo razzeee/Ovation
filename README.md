@@ -1,16 +1,36 @@
-# Open Desktop Ratings Service
+# Ovation
 
-A Flask web service for submitting application reviews
+A web service for submitting application reviews, built with Bun, Hono, and PostgreSQL.
+
+> **Credit:** This project is heavily based on [odrs-web](https://gitlab.gnome.org/Infrastructure/odrs-web).
 
 ## Setting up local environment
 
 The easiest way is to run `docker compose up` in the root directory. This will
-bring up a local ODRS instance with all needed services. Gunicorn can be
-directly accessed at http://localhost:8080, while nginx that would be used for
-production traffic listens at http://localhost:8000.
+bring up a local Ovation instance with a PostgreSQL database. The app is available
+at http://localhost:8080.
 
-The entrypoint script creates a default admin user with login `admin@test.com`
-and password `Pa$$w0rd`.
+### Development without Docker
+
+```shell
+bun install
+docker compose up db          # start PostgreSQL only
+bun run db:migrate
+bun run db:seed               # optional: seed sample data
+bun run dev                   # API server (hot-reload)
+bun run dev:admin             # admin UI (Vite dev server)
+```
+
+The seed script creates a default admin account you can use to log into the
+admin UI at http://localhost:5173/admin/:
+
+- **Email:** `admin@test.com`
+- **Password:** `Pa$$w0rd`
+
+### API documentation
+
+Interactive API docs (Swagger UI) are available at http://localhost:8080/docs.
+The raw OpenAPI 3.1 spec is served at http://localhost:8080/openapi.json.
 
 ### Example local requests
 
@@ -26,23 +46,18 @@ curl -w '\n' http://localhost:8080/1.0/reviews/api/ratings/org.example.app
 
 ### Generating migration files
 
-If you modify the database models, you'll need to generate migration files.
+If you modify the database schema in `src/db/schema.ts`, generate a new migration:
 
 ```shell
-env 'SQLALCHEMY_DATABASE_URI=mysql+mysqldb://odrs:odrspasswd@127.0.0.1:3306/odrs?charset=utf8mb4' flask --app odrs/ db migrate
+bun run db:generate
 ```
 
-This will drop a new file in `migrations/versions/`.
-Rename it to add a little description.
+This creates a new file in `migrations/`.
 
-## Deployment
+### Running tests
 
-New commits to the master branch are automatically deployed to the testing
-instance at https://odrs-dev.apps.openshift4.gnome.org/.
-
-A commit can be promoted to production environment by manually starting the
-`odrs` job [here](https://gitlab.gnome.org/Infrastructure/odrs-web/-/jobs).
-
-## I have a question
-
-Email me or grab me on IRC (`hughsie@libera.chat`).
+```shell
+bun test              # run all tests
+bun run typecheck     # TypeScript type checking
+bun run lint          # Biome linter
+```

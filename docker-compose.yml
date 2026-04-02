@@ -1,34 +1,38 @@
-version: "3"
-
-volumes:
-  ratings:
-
 services:
-  odrs:
-    image: odrs
-    build:
-      dockerfile: Dockerfile
-      context: .
+  db:
+    image: postgres:17-alpine
     restart: unless-stopped
-    user: root
+    ports:
+      - "5432:5432"
     environment:
-      - ODRS_REVIEWS_SECRET=1
-      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://odrs:odrspasswd@db/odrs?charset=utf8mb4
+      POSTGRES_DB: ovation
+      POSTGRES_USER: ovation
+      POSTGRES_PASSWORD: ovationpasswd
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ovation"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "8080:8080"
-    depends_on:
-      - db
-    volumes:
-      - .:/opt/app-root/src:z
-      - ratings:/tmp/ratings
-
-  db:
-    image: docker.io/library/mariadb:10.2
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
     environment:
-      - MARIADB_DATABASE=odrs
-      - MARIADB_USER=odrs
-      - MARIADB_PASSWORD=odrspasswd
-      - MARIADB_ROOT_PASSWORD=rootpasswd
+      DATABASE_URL: postgresql://ovation:ovationpasswd@db:5432/ovation
+      JWT_SECRET: change-me-to-a-secure-random-string
+      REVIEWS_SECRET: change-me-to-a-secure-random-string
+      SENTRY_DSN: ""
+      NODE_ENV: production
+      PORT: "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

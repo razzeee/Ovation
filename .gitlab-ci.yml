@@ -1,6 +1,6 @@
 include:
-  - project: 'Infrastructure/openshift-images/ci-templates'
-    file: '/buildah.yml'
+  - project: "Infrastructure/openshift-images/ci-templates"
+    file: "/buildah.yml"
 
 stages:
   - test
@@ -19,11 +19,12 @@ build-image:
 tests:
   stage: test
   needs: []
-  image: registry.access.redhat.com/ubi8/python-39
+  image: oven/bun:1
   script:
-    - pip install -r requirements.txt
-    - ODRS_REVIEWS_SECRET=not-secret4 python odrs/tests/util_test.py
-    - python odrs/tests/odrs_test.py
+    - bun install --frozen-lockfile
+    - bun run typecheck
+    - bun run lint
+    - bun test
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_PIPELINE_SOURCE == 'push'
@@ -38,5 +39,5 @@ deploy-prod:
     OCI_IMAGE_NAME: "odrs"
     OCI_IMAGE_TAG: "aarch64-latest"
   rules:
-  - if: $CI_COMMIT_REF_NAME == "master"
-    when: on_success
+    - if: $CI_COMMIT_REF_NAME == "master"
+      when: on_success
