@@ -5,6 +5,7 @@ import {
   fetchReviews,
   fetchReviewsByApp,
   fetchReviewsByLocale,
+  fetchReviewsByUser,
   searchReviews,
 } from "@admin/services/client";
 import {
@@ -47,8 +48,7 @@ export function ReviewsPage({ filter, mode }: Props) {
       } else if (mode === "by-locale" && params.locale) {
         res = await fetchReviewsByLocale(params.locale);
       } else if (mode === "by-user" && params.userHash) {
-        // Use search for user (filters by user_hash in backend)
-        res = await searchReviews(params.userHash);
+        res = await fetchReviewsByUser(params.userHash);
       } else {
         res = await fetchReviews({ page, per_page: perPage, filter });
       }

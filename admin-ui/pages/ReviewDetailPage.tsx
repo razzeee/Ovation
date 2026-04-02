@@ -311,12 +311,6 @@ export function ReviewDetailPage() {
                   />
                 </div>
                 <div className="detail-actions">
-                  <Link
-                    to={`/reviews/locale/${encodeURIComponent(review.locale)}`}
-                    className="btn btn-ghost btn-sm"
-                  >
-                    All
-                  </Link>
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"

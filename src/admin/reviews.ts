@@ -639,6 +639,63 @@ app.get(
   },
 );
 
+// ─── GET /reviews/by-user/:user_hash — reviews for a specific user ──────────
+
+app.get(
+  "/by-user/:user_hash",
+  adminReviewDesc(
+    "Reviews by user",
+    "Get all reviews submitted by a specific user identified by their hash.",
+    AdminReviewListResponse,
+  ),
+  async (c) => {
+    const userHash = c.req.param("user_hash");
+
+    const rows = await db
+      .select({
+        reviewId: reviews.reviewId,
+        dateCreated: reviews.dateCreated,
+        locale: reviews.locale,
+        summary: reviews.summary,
+        description: reviews.description,
+        userDisplay: reviews.userDisplay,
+        version: reviews.version,
+        distro: reviews.distro,
+        rating: reviews.rating,
+        karmaUp: reviews.karmaUp,
+        karmaDown: reviews.karmaDown,
+        reported: reviews.reported,
+        appId: components.appId,
+        userHash: users.userHash,
+      })
+      .from(reviews)
+      .innerJoin(components, eq(reviews.componentId, components.componentId))
+      .innerJoin(users, eq(reviews.userId, users.userId))
+      .where(eq(users.userHash, userHash))
+      .orderBy(desc(reviews.dateCreated));
+
+    return c.json({
+      success: true,
+      reviews: rows.map((r) => ({
+        review_id: r.reviewId,
+        date_created: r.dateCreated.toISOString(),
+        locale: r.locale,
+        summary: r.summary,
+        description: r.description,
+        user_display: r.userDisplay,
+        version: r.version,
+        distro: r.distro,
+        rating: r.rating,
+        karma_up: r.karmaUp,
+        karma_down: r.karmaDown,
+        reported: r.reported,
+        app_id: r.appId,
+        user_hash: r.userHash,
+      })),
+    });
+  },
+);
+
 // ─── GET /reviews/by-locale/:locale — reviews for a specific locale ─────────
 
 app.get(

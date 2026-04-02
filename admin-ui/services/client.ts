@@ -194,6 +194,12 @@ export function fetchReviewsByLocale(
   return request("GET", `/reviews/by-locale/${encodeURIComponent(locale)}`);
 }
 
+export function fetchReviewsByUser(
+  userHash: string,
+): Promise<ReviewsListResponse> {
+  return request("GET", `/reviews/by-user/${encodeURIComponent(userHash)}`);
+}
+
 // ─── Moderators ─────────────────────────────────────────────────────────────
 
 export interface Moderator {
